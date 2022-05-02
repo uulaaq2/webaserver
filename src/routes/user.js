@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const cors = require('cors')
 const headers = require('../options/corsOptions')
-const { setWarning, setSuccess } = require('../functions/setReply')
+const { setWarning, setSuccess, setError } = require('../functions/setReply')
 const Token = require('../classes/Token')
 const Password = require('../classes/Password')
 const res = require('express/lib/response')
@@ -18,28 +18,23 @@ router.post('/', cors(), headers, function(req, res) {
 })
 
 router.post('/me/verifypassword', cors(), headers, function(req, res) {
-  if (!req.body.password || !req.body.token) {
-    res.send(setWarning('Missing parameters'))
-    return
-  }
-
-  const main = async () => {
-    const token = new Token()
-    const verifiedTokenResult = token.verifyToken(req.body.token, true)
-    if (verifiedTokenResult.status !== 'ok') {
-      res.send(verifiedTokenResult)
-  
+  try {
+    if (!req.body.password || !req.body.token) {
+      res.send(setWarning('Missing parameters'))
       return
     }
-
-    const encryptedPassword = verifiedTokenResult.decryptedData.password
-    const password = new Password()  
-    const verifyPasswordResult = password.decryptPassword(req.body.password, encryptedPassword)
   
-    res.send(verifyPasswordResult)
-  }
+    const main = async () => {
+      const verifyPasswordResult = await new User().verifyUserPassword(req.body.password, req.body.token)
+      res.send(verifyPasswordResult)
 
-  main()
+      return
+    }
+  
+    main()    
+  } catch (error) {
+    res.send('error')
+  }
 })
 
 router.post('/me/changepassword', cors(), headers, function(req, res) {

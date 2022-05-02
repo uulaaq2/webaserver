@@ -201,6 +201,21 @@ class User {
             console.log(error)
         }
     }
+    
+    async verifyUserPassword(currentPassword, token) {
+        try {
+            const verifyTokenResult = new Token().verifyToken(token, true)
+            if (verifyTokenResult.status !== 'ok') {
+                return verifyTokenResult
+            }
+
+            const decryptPasswordResult =  new Password().decryptPassword(currentPassword, verifyTokenResult.decryptedData.password)
+            return decryptPasswordResult
+
+        } catch (error) {
+            return setError(error)
+        }
+    }
 
 }
 
