@@ -51,7 +51,7 @@ class User {
                 userTokenFields : {
                     accountExpiresAt: user.Expires_At,
                     email: user.Email,
-                    password: user.Password,
+                    //password: user.Password,
                     avatar: user.Avatar,
                     site: user.Site,
                     homePage: user.Home_Page,
@@ -202,19 +202,55 @@ class User {
         }
     }
     
-    async verifyUserPassword(currentPassword, token) {
+
+    async verifyUserPassword(currentPassword, clientToken) {
         try {
-            const verifyTokenResult = new Token().verifyToken(token, true)
+            // Verify token and get user email
+            const token = new Token()
+            const verifyTokenResult = token.verifyToken(clientToken, true)
             if (verifyTokenResult.status !== 'ok') {
                 return verifyTokenResult
             }
 
-            const decryptPasswordResult =  new Password().decryptPassword(currentPassword, verifyTokenResult.decryptedData.password)
-            return decryptPasswordResult
+            // get user via email from verify token result
+            const userResult = await this.getUserByEmail(verifyTokenResult.decryptedData.email)
+            if (userResult.status !== 'ok') {
+                return userResult
+            }
 
+            // check if user password correct
+            const verifyPasswordResult = new Password().decryptPassword(currentPassword, userResult.user.Password)
+            
+            return verifyPasswordResult                      
         } catch (error) {
             return setError(error)
         }
+    // end of verifyUserPassword
+    }
+
+    async generateNewUserToken(clientToken, expiresIn = null) {
+        try {
+            // Verify token and get user email
+            const token = new Token()
+            const verifyTokenResult = token.verifyToken(clientToken, true)
+            if (verifyTokenResult.status !== 'ok') {
+                return verifyTokenResult
+            }
+    
+            // get user via email from verify token result
+            const userResult = await this.getUserByEmail(verifyTokenResult.decryptedData.email)
+            if (userResult.status !== 'ok') {
+                return userResult
+            }            
+
+            // generate a new token for user
+            const generateTokenResult = token.generateToken(userResult, expiresIn)
+
+            return generateTokenResult
+        } catch (error) {
+            return setError(error)
+        }
+
     }
 
 }
