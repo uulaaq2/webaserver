@@ -86,9 +86,28 @@ router.post('/me/generatetoken', cors(), headers, function(req, res) {
     }
     const main = async () => {
       const user = new User()
-      const generateUserTokenResult = user.generateNewUserToken(req.body.token, req.body.expiresIn || null)    
-  
+      const generateUserTokenResult = await user.generateNewUserToken(req.body.token, req.body.expiresIn || null)    
+
       res.send(generateUserTokenResult)
+    }
+  
+    main()    
+  } catch (error) {
+    res.send(setError(error))
+  }
+})
+
+router.post('/me/verifytoken', cors(), headers, function(req, res) {
+  try {
+    if (!req.body.token) {
+      res.send(setWarning('Missing parameters - /me/verifytoken'))
+      return
+    }
+
+    const main = async () => {
+      const user = new User()
+      const verifyTokenResult = await user.verifyUserToken(req.body.token, req.body.includeUserData || false)
+      res.send(verifyTokenResult)
     }
   
     main()    

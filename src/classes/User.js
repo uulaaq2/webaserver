@@ -244,13 +244,30 @@ class User {
             }            
 
             // generate a new token for user
-            const generateTokenResult = token.generateToken(userResult, expiresIn)
-
+            const generateTokenResult = token.generateToken(this.prepareUserTokenFields(userResult), expiresIn)
+            
             return generateTokenResult
         } catch (error) {
             return setError(error)
         }
+    // enf of generateNewUserToken
+    }
 
+    async verifyUserToken(clientToken, includeUserData = false) {
+        try {
+            const token = new Token()
+            const verifyTokenResult = token.verifyToken(clientToken)
+            
+            if (!includeUserData) {
+                return verifyTokenResult
+            }
+            
+            const getUserByEmailResult = this.getUserByEmail(verifyTokenResult.decryptedData.email)
+
+            return getUserByEmailResult
+        } catch (error) {
+            return setError(error)
+        }
     }
 
 }

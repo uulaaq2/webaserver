@@ -12,7 +12,6 @@ router.get('/', cors(), headers, function(req, res) {
 })
 
 router.post('/', cors(), headers, function(req, res) {
-  console.log(req.body.email, req.body.password)
   const signIn = async () => {
     try {
       if (!req.body.email || !req.body.password) {
