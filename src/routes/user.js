@@ -19,22 +19,23 @@ router.post('/', cors(), headers, function(req, res) {
 
 router.post('/me/verifypassword', cors(), headers, function(req, res) {
   try {
-    if (!req.body.password || !req.body.token) {
+    // check if password and token is posted with body
+    if (!req.body.currentPassword || !req.body.token) {
       res.send(setWarning('Missing parameters'))
       return
     }
   
+    // wait for verify user password result and send result 
     const main = async () => {
-      const verifyPasswordResult = await new User().verifyUserPassword(req.body.password, req.body.token)
+      const verifyPasswordResult = await new User().verifyUserPassword(req.body.currentPassword, req.body.token)
       res.send(verifyPasswordResult)
-
-      return
     }
   
     main()    
   } catch (error) {
-    res.send('error')
+    res.send(setError(error))
   }
+// me/verifypassword end  
 })
 
 router.post('/me/changepassword', cors(), headers, function(req, res) {
@@ -53,7 +54,6 @@ router.post('/me/changepassword', cors(), headers, function(req, res) {
     }
 
     const emailAddress = verifiedTokenResult.decryptedData.email    
-    console.log(verifiedTokenResult)
 
     const user = new User()
     const userChangePasswordResult = await user.changePassword(emailAddress, req.body.newPassword)
@@ -77,6 +77,45 @@ router.post('/me/emailpasswordresetlink', cors(), headers, function(req, res) {
 
   main()
 })
+
+router.post('/me/generatetoken', cors(), headers, function(req, res) {
+  try {
+    if (!req.body.token) {
+      res.send(setWarning('Missing parameters'))
+      return
+    }
+    const main = async () => {
+      const user = new User()
+      const generateUserTokenResult = await user.generateNewUserToken(req.body.token, req.body.expiresIn || null)    
+
+      res.send(generateUserTokenResult)
+    }
+  
+    main()    
+  } catch (error) {
+    res.send(setError(error))
+  }
+})
+
+router.post('/me/verifytoken', cors(), headers, function(req, res) {
+  try {
+    if (!req.body.token) {
+      res.send(setWarning('Missing parameters - /me/verifytoken'))
+      return
+    }
+
+    const main = async () => {
+      const user = new User()
+      const verifyTokenResult = await user.verifyUserToken(req.body.token, req.body.includeUserData || false)
+      res.send(verifyTokenResult)
+    }
+  
+    main()    
+  } catch (error) {
+    res.send(setError(error))
+  }
+})
+
 
 
 module.exports = router
