@@ -242,9 +242,12 @@ class User {
             if (userResult.status !== 'ok') {
                 return userResult
             }            
-
+            
             // generate a new token for user
-            const generateTokenResult = token.generateToken(this.prepareUserTokenFields(userResult), expiresIn)
+            const generateTokenResult = token.generateToken(this.prepareUserTokenFields(userResult.user).userTokenFields, expiresIn)
+            if (generateTokenResult.status !== 'ok') {
+                return generateTokenResult
+            }
             
             return generateTokenResult
         } catch (error) {
@@ -257,12 +260,11 @@ class User {
         try {
             const token = new Token()
             const verifyTokenResult = token.verifyToken(clientToken)
-            
             if (!includeUserData) {
                 return verifyTokenResult
             }
             
-            const getUserByEmailResult = this.getUserByEmail(verifyTokenResult.decryptedData.email)
+            const getUserByEmailResult = await this.getUserByEmail(verifyTokenResult.decryptedData.email)
 
             return getUserByEmailResult
         } catch (error) {
